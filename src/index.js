@@ -8,7 +8,6 @@ const searchBtn = document.querySelector('button')
 
 searchBtn.addEventListener('input', onInputclick)
 
-<<<<<<< HEAD
 const inputEl = document.querySelector('#search-box');
 const countryList = document.querySelector('.country-list');
 
@@ -41,10 +40,10 @@ function renderCountryCard(countries, template) {
   countryList.innerHTML = markUp;
 }
 function clearCountryCard() {
-  countryList.innerHTML ='';
-=======
-function onInputclick(e) {
-  e.preventDefault;
-  fetchPictures()
->>>>>>> 56aab4e50a69276c9c51a76b538eb9f57424c10d
+    countryList.innerHTML = '';
+    
+    function onInputclick(e) {
+        e.preventDefault;
+        fetchPictures()
+    }
 }
