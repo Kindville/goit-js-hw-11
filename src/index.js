@@ -1,49 +1,89 @@
 import './css/styles.css';
 import Notiflix from 'notiflix';
 import { Notify } from 'notiflix/build/notiflix-notify-aio';
-import './fetchCountries'
+import './fetchImages'
+import SimpleLightbox from "simplelightbox";
+import 'simplelightbox/dist/simple-lightbox.min.css'
+import { render } from 'sass';
+import simpleLightbox from 'simplelightbox';
+
 
 const searchForm = document.querySelector('#search-form')
-const searchBtn = document.querySelector('button')
+const loadMore = document.querySelector('.load-more')
+const gallery = document.querySelector('.gallery');
 
-searchBtn.addEventListener('input', onInputclick)
+searchForm.addEventListener('sumbit', onSearchForm)
+loadMore.addEventListener('click', onLoadMoreBtn)
+let query = '';
+let page = 1;
+const perPage = 40;
+let simpleLightbox;
 
-const inputEl = document.querySelector('#search-box');
-const countryList = document.querySelector('.country-list');
-
-inputEl.addEventListener('input', debounce(onSearch, DEBOUNCE_DELAY));
-
-function onSearch(e) {
+function onSearchForm(e) {
   e.preventDefault();
-  const formValue = e.target.value.trim();
-  if (formValue === '') {
-     return  clearCountryCard();
-  }
+  page = 1;
+  query = e.currentTarget.searchQuery.value.trim();
+  gallery.innerHTML = ''
   
-  API.fetchCountries(formValue).then(data => {
-    clearCountryCard();
-     if (data.length > 10) {
-      Notiflix.Notify.info('Too many matches found. Please enter a more specific name.');
-    
-    } else if (data.length === 1) {
-      renderCountryCard(data, countryCard);
-    } else if (data.length <= 10) {
-      renderCountryCard(data, countryCards);
+
+  if (query === '') {
+      Notiflix.Notify.failure('Please specify your search.')
+    return;
+  }
+  fetchPictures(query, page, perPage)
+    .then(({ data }) => {
+      if (data.totalHits === 0) {
+      Notiflix.Notify.failure('Sorry, there are no images matching your search query. Please try again.')
+      } else {
+        renderGallery(data.hits)
+        simpleLightbox = new SimpleLightbox('.gallery').refresh()
+         Notiflix.Notify.success(`Hooray! We found ${data.totalHits} images.`)
+        
+        // if (data.totalHits > perPage) {
+          
+        // }
     }
-  })
-  .catch(error =>
-         error);
+    })
+  .catch(error)
 }
 
-function renderCountryCard(countries, template) {
-  const markUp = countries.map(country => template(country)).join('');
-  countryList.innerHTML = markUp;
+function onLoadMoreBtn() {
+  page += 1;
+  simpleLightbox.destroy()
+
+  fetchPictures(query, page, perPage)
+    .then(({ data }) => {
+      renderGallery(data.hits)
+      simpleLightbox = new SimpleLightbox('.gallery').refresh()
+  })
 }
-function clearCountryCard() {
-    countryList.innerHTML = '';
-    
-    function onInputclick(e) {
-        e.preventDefault;
-        fetchPictures()
-    }
+
+function renderGallery(images) {
+  const markup = images
+    .map(image => {
+      const { largeImageURL, webformatURL, tags, likes, views, comments, downloads }
+        = image
+
+      return `<a href="${largeImageURL}"> 
+          <div class="photo-card">
+          <img src="${webformatURL} " alt="${tags}" loading="lazy" />
+          <div class="info">
+            <p class="info-item">
+              <b>Likes</b>${likes}
+            </p>
+            <p class="info-item">
+              <b>Views</b>${views}
+            </p>
+            <p class="info-item">
+              <b>Comments</b>${comments}
+            </p>
+            <p class="info-item">
+              <b>Downloads</b>${downloads}
+            </p>
+          </div>
+        </div>
+          </a>`
+            })
+  .join('')
+    gallery.innerHTML(markup)
 }
