@@ -22,6 +22,7 @@ function onSearchForm(e) {
   page = 1;
    query = e.currentTarget.searchQuery.value.trim();
   gallery.innerHTML = ''
+  loadMore.classList.add('is-hidden')
   
   if (query === '') {
     // console.log('mistake');
